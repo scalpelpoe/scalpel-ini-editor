@@ -10,6 +10,7 @@ import { SaveButton } from './SaveButton'
 import { schemaForVersion } from './schema'
 import { ScrollToastHeader } from './ScrollToastHeader'
 import { Section } from './Section'
+import { Toast } from './Toast'
 
 export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
   const schema = useMemo(() => schemaForVersion(ctx.getPoeVersion()), [ctx])
@@ -64,7 +65,7 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
       setExternalChange(false)
       setSaved(true)
       if (savedTimer.current) clearTimeout(savedTimer.current)
-      savedTimer.current = setTimeout(() => setSaved(false), 1500)
+      savedTimer.current = setTimeout(() => setSaved(false), 3500)
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -101,6 +102,10 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
       <ScrollToastHeader collapsed={collapsed}>
         <SaveButton dirty={dirty} saving={saving} saved={saved} onSave={() => void save()} compact />
       </ScrollToastHeader>
+      <Toast
+        visible={saved}
+        message={`.ini saved, restart PoE${ctx.getPoeVersion()} for these changes to take effect. Probably.`}
+      />
       <div
         ref={scrollRef}
         onScroll={() => {
@@ -110,7 +115,7 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
       >
         <Hero
           title=".ini Editor"
-          subtitle="Edits apply next launch. Avoid changing these in PoE's own Options this session."
+          subtitle="If you don't know what you're doing, be careful. This plugin edits your production_Config.ini file directly, and will be loaded again after you restart the game."
           save={<SaveButton dirty={dirty} saving={saving} saved={saved} onSave={() => void save()} fullHeight />}
         />
         {externalChange && (
