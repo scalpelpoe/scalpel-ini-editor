@@ -14,4 +14,18 @@ describe('Section', () => {
     render(<Section title="Display" forceOpen><div>child</div></Section>)
     expect(screen.getByText('child')).toBeTruthy()
   })
+  it('clicking while forceOpen does not corrupt manual state (stays collapsed once search clears)', () => {
+    const { rerender } = render(
+      <Section title="Display" forceOpen>
+        <div>child</div>
+      </Section>,
+    )
+    fireEvent.click(screen.getByText('Display'))
+    rerender(
+      <Section title="Display" forceOpen={false}>
+        <div>child</div>
+      </Section>,
+    )
+    expect(screen.queryByText('child')).toBeNull()
+  })
 })

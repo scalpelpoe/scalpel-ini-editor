@@ -20,9 +20,11 @@ export function Section({
         className="setting-box mt-[2px]"
         role="button"
         tabIndex={0}
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          if (!forceOpen) setOpen((o) => !o)
+        }}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') setOpen((o) => !o)
+          if (!forceOpen && (e.key === 'Enter' || e.key === ' ')) setOpen((o) => !o)
         }}
       >
         <span style={{ fontWeight: 600, color: 'var(--text)' }}>{title}</span>

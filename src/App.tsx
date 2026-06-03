@@ -55,7 +55,7 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
   }, [ctx])
 
   async function save(): Promise<void> {
-    if (!doc) return
+    if (!doc || savingRef.current) return
     savingRef.current = true
     setSaving(true)
     try {

@@ -29,4 +29,10 @@ describe('SettingField', () => {
     expect(container.querySelector('.setting-box')).toBeNull()
     expect(screen.getByTestId('vc-raw')).toBeTruthy()
   })
+  it('key -> label + ValueControl in a setting-box', () => {
+    const { container } = render(<SettingField control={{ kind: 'key', label: 'Pickup' }} value="0" onChange={() => {}} />)
+    expect(container.querySelector('label')?.textContent).toBe('Pickup')
+    expect(container.querySelector('.setting-box')).toBeTruthy()
+    expect(screen.getByTestId('vc-key')).toBeTruthy()
+  })
 })

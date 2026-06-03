@@ -28,7 +28,7 @@ export function SaveButton({
       ? { background: 'var(--accent)', color: '#171821' }
       : { background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.15)' }
   return (
-    <button type="button" style={{ ...base, ...tone }} disabled={!dirty} onClick={onSave}>
+    <button type="button" style={{ ...base, ...tone }} disabled={!dirty || saving} onClick={onSave}>
       {label}
     </button>
   )
