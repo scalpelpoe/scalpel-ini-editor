@@ -1,0 +1,32 @@
+import { render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { SettingField } from './SettingField'
+
+vi.mock('@scalpelpoe/plugin-sdk', () => ({
+  SettingToggleBox: ({ label }: any) => <div data-testid="toggle-box">{label}</div>,
+  SettingSelectBox: ({ label }: any) => <div data-testid="select-box">{label}</div>,
+}))
+vi.mock('./ValueControl', () => ({ ValueControl: ({ control }: any) => <div data-testid={`vc-${control.kind}`} /> }))
+
+describe('SettingField', () => {
+  it('toggle -> SettingToggleBox', () => {
+    render(<SettingField control={{ kind: 'toggle', label: 'Flag' }} value="true" onChange={() => {}} />)
+    expect(screen.getByTestId('toggle-box').textContent).toBe('Flag')
+  })
+  it('enum -> SettingSelectBox', () => {
+    render(<SettingField control={{ kind: 'enum', label: 'VSync', options: ['On', 'Off'] }} value="Off" onChange={() => {}} />)
+    expect(screen.getByTestId('select-box')).toBeTruthy()
+  })
+  it('number -> label + ValueControl in a setting-box', () => {
+    const { container } = render(<SettingField control={{ kind: 'number', label: 'Width' }} value="1920" onChange={() => {}} />)
+    expect(container.querySelector('label')?.textContent).toBe('Width')
+    expect(container.querySelector('.setting-box')).toBeTruthy()
+    expect(screen.getByTestId('vc-number')).toBeTruthy()
+  })
+  it('raw -> label + ValueControl, no setting-box', () => {
+    const { container } = render(<SettingField control={{ kind: 'raw', label: 'Builds' }} value="{}" onChange={() => {}} />)
+    expect(container.querySelector('label')?.textContent).toBe('Builds')
+    expect(container.querySelector('.setting-box')).toBeNull()
+    expect(screen.getByTestId('vc-raw')).toBeTruthy()
+  })
+})
