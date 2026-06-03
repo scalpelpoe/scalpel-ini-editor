@@ -1,4 +1,4 @@
-import { Down, Right } from '@icon-park/react'
+import { Down, Up } from '@icon-park/react'
 import { type ReactNode, useState } from 'react'
 
 export function Section({
@@ -15,9 +15,8 @@ export function Section({
   const [open, setOpen] = useState(defaultOpen)
   const isOpen = forceOpen || open
   return (
-    <section>
+    <section style={{ background: 'var(--bg-card)', borderRadius: 6, overflow: 'hidden', marginBottom: 8 }}>
       <div
-        className="setting-box mt-[2px]"
         role="button"
         tabIndex={0}
         onClick={() => {
@@ -26,11 +25,19 @@ export function Section({
         onKeyDown={(e) => {
           if (!forceOpen && (e.key === 'Enter' || e.key === ' ')) setOpen((o) => !o)
         }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 12px',
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
       >
         <span style={{ fontWeight: 600, color: 'var(--text)' }}>{title}</span>
-        <span style={{ display: 'flex' }}>{isOpen ? <Down size={14} /> : <Right size={14} />}</span>
+        <span style={{ display: 'flex', color: 'var(--text-dim)' }}>{isOpen ? <Up size={14} /> : <Down size={14} />}</span>
       </div>
-      {isOpen && <div style={{ margin: '4px 0 10px' }}>{children}</div>}
+      {isOpen && <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '0 12px 12px' }}>{children}</div>}
     </section>
   )
 }

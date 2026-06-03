@@ -97,7 +97,7 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
   }
 
   return (
-    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       <ScrollToastHeader collapsed={collapsed}>
         <SaveButton dirty={dirty} saving={saving} saved={saved} onSave={() => void save()} compact />
       </ScrollToastHeader>
@@ -106,13 +106,12 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
         onScroll={() => {
           if (scrollRef.current) setCollapsed(scrollRef.current.scrollTop > 60)
         }}
-        style={{ flex: 1, overflowY: 'auto', padding: 8 }}
+        style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 8 }}
       >
         <Hero
           title=".ini Editor"
           subtitle="Edits apply next launch. Avoid changing these in PoE's own Options this session."
-          save={<SaveButton dirty={dirty} saving={saving} saved={saved} onSave={() => void save()} />}
-          onReload={() => void load()}
+          save={<SaveButton dirty={dirty} saving={saving} saved={saved} onSave={() => void save()} fullHeight />}
         />
         {externalChange && (
           <div style={{ marginTop: 8 }}>

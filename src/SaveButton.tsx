@@ -6,20 +6,23 @@ export function SaveButton({
   saved,
   onSave,
   compact = false,
+  fullHeight = false,
 }: {
   dirty: boolean
   saving: boolean
   saved: boolean
   onSave: () => void
   compact?: boolean
+  fullHeight?: boolean
 }): JSX.Element {
   const label = saving ? 'Saving...' : saved ? 'Saved' : 'Save'
   const base: CSSProperties = {
     border: 'none',
     borderRadius: 4,
     fontWeight: 600,
-    padding: compact ? '6px 16px' : '10px 28px',
+    padding: compact ? '6px 16px' : '8px 24px',
     fontSize: compact ? 11 : 13,
+    height: fullHeight ? '100%' : undefined,
     cursor: dirty ? 'pointer' : 'default',
   }
   const tone: CSSProperties = saved
