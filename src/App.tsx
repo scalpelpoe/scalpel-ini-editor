@@ -82,7 +82,7 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
       <Notice
         icon={<Info />}
         title="Editing the game config"
-        body="Changes apply at the next game launch. Path of Exile overwrites this file when it exits, so close the game before saving to avoid losing edits."
+        body="Changes apply the next time you launch the game. Heads up: if you also change these same settings in Path of Exile's own Options menu this session, the game will overwrite your edits when it saves its config."
       />
       {externalChange && (
         <Notice
