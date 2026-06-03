@@ -14,7 +14,7 @@ export default defineConfig({
       // Scalpel provides these at runtime via importmap.
       external: ['react', 'react-dom', 'react-dom/client', 'react-dom/server', 'react/jsx-runtime', '@scalpelpoe/plugin-sdk'],
     },
-    minify: 'esbuild',
+    minify: 'oxc',
     sourcemap: true,
   },
 })
