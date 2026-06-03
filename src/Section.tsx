@@ -2,32 +2,33 @@ import { Down, Right } from '@icon-park/react'
 import { type ReactNode, useState } from 'react'
 
 export function Section({
-  rawName,
   title,
-  count,
   defaultOpen = false,
+  forceOpen = false,
   children,
 }: {
-  rawName: string
   title: string
-  count: number
   defaultOpen?: boolean
+  forceOpen?: boolean
   children: ReactNode
 }): JSX.Element {
   const [open, setOpen] = useState(defaultOpen)
+  const isOpen = forceOpen || open
   return (
-    <div style={{ borderBottom: '1px solid var(--border, rgba(255,255,255,0.1))' }}>
-      <button
-        type="button"
+    <section>
+      <div
+        className="setting-box mt-[2px]"
+        role="button"
+        tabIndex={0}
         onClick={() => setOpen((o) => !o)}
-        style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 4px', background: 'none', border: 'none', color: 'var(--text)', cursor: 'pointer' }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') setOpen((o) => !o)
+        }}
       >
-        {open ? <Down /> : <Right />}
-        <span style={{ fontWeight: 600 }}>{title}</span>
-        <span style={{ opacity: 0.5, fontSize: 12 }}>[{rawName}]</span>
-        <span style={{ marginLeft: 'auto', opacity: 0.5, fontSize: 12 }}>{count}</span>
-      </button>
-      {open && <div style={{ padding: '4px 8px 12px' }}>{children}</div>}
-    </div>
+        <span style={{ fontWeight: 600, color: 'var(--text)' }}>{title}</span>
+        <span style={{ display: 'flex' }}>{isOpen ? <Down size={14} /> : <Right size={14} />}</span>
+      </div>
+      {isOpen && <div style={{ margin: '4px 0 10px' }}>{children}</div>}
+    </section>
   )
 }
