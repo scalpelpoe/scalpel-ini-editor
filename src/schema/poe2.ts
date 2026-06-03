@@ -79,6 +79,8 @@ export const POE2_SCHEMA: GameSchema = {
         step: 0.05,
         decimals: 2,
       },
+      // GGG shipped this key name with a typo ("brigthness"); it matches the real
+      // config file, so do not "correct" it.
       ui_brigthness: {
         type: 'slider',
         label: 'UI brightness',

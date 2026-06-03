@@ -9,9 +9,12 @@ export function KeyField({ value, onChange }: { value: string; onChange: (v: str
       variant={arming ? 'primary' : 'secondary'}
       size="sm"
       onClick={() => setArming(true)}
+      onBlur={() => setArming(false)}
       onKeyDown={(e: KeyboardEvent<HTMLButtonElement>) => {
         if (!arming) return
         e.preventDefault()
+        // e.keyCode is deprecated but is the only API that yields raw Windows VK
+        // codes, which is exactly what PoE stores. Intentionally kept.
         onChange(replaceFirstToken(value, String(e.keyCode)))
         setArming(false)
       }}

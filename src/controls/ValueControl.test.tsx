@@ -25,4 +25,8 @@ describe('ValueControl', () => {
     fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '7' } })
     expect(onChange).toHaveBeenCalledWith('7')
   })
+  it('slider with an out-of-range value falls back to a number input', () => {
+    render(<ValueControl control={{ kind: 'slider', label: 's', min: 0, max: 100 }} value="330" onChange={() => {}} />)
+    expect(screen.getByRole('spinbutton')).toBeTruthy()
+  })
 })

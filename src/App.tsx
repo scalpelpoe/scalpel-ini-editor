@@ -17,6 +17,7 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
   const [query, setQuery] = useState('')
   const dirtyRef = useRef(dirty)
   dirtyRef.current = dirty
+  const savingRef = useRef(false)
 
   async function load(): Promise<void> {
     try {
@@ -33,6 +34,7 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
   useEffect(() => {
     void load()
     const off = ctx.gameConfig.onChange(() => {
+      if (savingRef.current) return
       if (dirtyRef.current) setExternalChange(true)
       else void load()
     })
@@ -42,26 +44,37 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
 
   async function save(): Promise<void> {
     if (!doc) return
+    savingRef.current = true
     try {
       await ctx.gameConfig.write(serializeIni(doc))
       setDirty(false)
       setExternalChange(false)
     } catch (e) {
       setError((e as Error).message)
+    } finally {
+      savingRef.current = false
     }
   }
+
+  const sections = useMemo(() => {
+    const out: { name: string; pairs: { key: string; value: string }[] }[] = []
+    if (!doc) return out
+    for (const l of doc.lines) {
+      if (l.kind === 'section') out.push({ name: l.name, pairs: [] })
+      else if (l.kind === 'pair') {
+        // parseIni already set l.section to a header that was pushed; the
+        // fallback only matters for pairs before the first [SECTION], which
+        // real PoE configs never contain.
+        const s = out.find((x) => x.name === l.section) ?? out[out.length - 1]
+        s?.pairs.push({ key: l.key, value: l.value })
+      }
+    }
+    return out
+  }, [doc])
 
   if (error) return <ErrorBanner message={error} tone="error" />
   if (!doc) return <div style={{ padding: 12 }}>Loading config...</div>
 
-  const sections: { name: string; pairs: { key: string; value: string }[] }[] = []
-  for (const l of doc.lines) {
-    if (l.kind === 'section') sections.push({ name: l.name, pairs: [] })
-    else if (l.kind === 'pair') {
-      const s = sections.find((x) => x.name === l.section) ?? sections[sections.length - 1]
-      s?.pairs.push({ key: l.key, value: l.value })
-    }
-  }
   const q = query.trim().toLowerCase()
 
   return (

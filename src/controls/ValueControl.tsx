@@ -26,17 +26,32 @@ export function ValueControl({
           onChange={onChange}
         />
       )
-    case 'slider':
+    case 'slider': {
+      const n = Number(value)
+      const min = control.min ?? 0
+      const max = control.max ?? 1
+      // Out-of-range or non-numeric stored values (e.g. GGG's dialogue_sound_volume2=330)
+      // would be silently clamped by a range input, so edit them with the scrubber instead.
+      if (!Number.isFinite(n) || n < min || n > max) {
+        return (
+          <ScrubInput
+            value={value === '' ? null : n}
+            decimals={control.decimals ?? 0}
+            onChange={(v) => onChange(v === null ? '' : String(v))}
+          />
+        )
+      }
       return (
         <Slider
-          min={control.min ?? 0}
-          max={control.max ?? 1}
+          min={min}
+          max={max}
           step={control.step ?? 0.05}
-          value={Number(value) || 0}
+          value={n}
           onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
           fullWidth
         />
       )
+    }
     case 'number':
       return (
         <ScrubInput

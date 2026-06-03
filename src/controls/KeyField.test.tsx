@@ -15,4 +15,12 @@ describe('KeyField', () => {
     fireEvent.keyDown(btn, { keyCode: 87 })
     expect(onChange).toHaveBeenCalledWith('87 2')
   })
+  it('cancels arming when focus is lost', () => {
+    render(<KeyField value="87" onChange={() => {}} />)
+    const btn = screen.getByRole('button')
+    fireEvent.click(btn)
+    expect(btn.textContent).toBe('Press a key...')
+    fireEvent.blur(btn)
+    expect(btn.textContent).toBe('W')
+  })
 })
