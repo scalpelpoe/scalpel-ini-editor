@@ -3,7 +3,7 @@
   "id": "ini-editor",
   "version": "1.0.0",
   "name": ".ini Editor",
-  "description": "Edit the running game's production_Config.ini from inside Scalpel.",
+  "description": "Edit your production_Config.ini. If you dare.",
   "author": "scalpelpoe",
   "homepage": "https://github.com/scalpelpoe/scalpel-ini-editor",
   "scalpelMinVersion": ">=0.9.12",
