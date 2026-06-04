@@ -17,7 +17,7 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
   const [doc, setDoc] = useState<IniDoc | null>(null)
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [toast, setToast] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [externalChange, setExternalChange] = useState(false)
   const [query, setQuery] = useState('')
@@ -26,14 +26,15 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
   dirtyRef.current = dirty
   const savingRef = useRef(false)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // The post-save toast owns its own timer so a background reload (onChange ->
+  // load) can never cut it short.
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   async function load(): Promise<void> {
     try {
       const { content } = await ctx.gameConfig.read()
       setDoc(parseIni(content))
       setDirty(false)
-      setSaved(false)
       setExternalChange(false)
       setError(null)
     } catch (e) {
@@ -50,7 +51,7 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
     })
     return () => {
       off()
-      if (savedTimer.current) clearTimeout(savedTimer.current)
+      if (toastTimer.current) clearTimeout(toastTimer.current)
     }
     // load is stable for a given ctx; re-subscribe only when ctx changes
   }, [ctx])
@@ -63,9 +64,9 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
       await ctx.gameConfig.write(serializeIni(doc))
       setDirty(false)
       setExternalChange(false)
-      setSaved(true)
-      if (savedTimer.current) clearTimeout(savedTimer.current)
-      savedTimer.current = setTimeout(() => setSaved(false), 3500)
+      setToast(true)
+      if (toastTimer.current) clearTimeout(toastTimer.current)
+      toastTimer.current = setTimeout(() => setToast(false), 3500)
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -94,16 +95,15 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
   const onEdit = (section: string, key: string, v: string): void => {
     setDoc((d) => (d ? setValue(d, section, key, v) : d))
     setDirty(true)
-    setSaved(false)
   }
 
   return (
     <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       <ScrollToastHeader collapsed={collapsed}>
-        <SaveButton dirty={dirty} saving={saving} saved={saved} onSave={() => void save()} compact />
+        <SaveButton dirty={dirty} saving={saving} onSave={() => void save()} compact />
       </ScrollToastHeader>
       <Toast
-        visible={saved}
+        visible={toast}
         message={`.ini saved, restart PoE${ctx.getPoeVersion()} for these changes to take effect. Probably.`}
       />
       <div
@@ -116,7 +116,7 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
         <Hero
           title=".ini Editor"
           subtitle="If you don't know what you're doing, be careful. This plugin edits your production_Config.ini file directly, and will be loaded again after you restart the game."
-          save={<SaveButton dirty={dirty} saving={saving} saved={saved} onSave={() => void save()} fullHeight />}
+          save={<SaveButton dirty={dirty} saving={saving} onSave={() => void save()} fullHeight />}
         />
         {externalChange && (
           <div style={{ marginTop: 8 }}>
