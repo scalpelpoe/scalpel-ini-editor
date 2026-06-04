@@ -3,16 +3,14 @@ import { type ReactNode, useState } from 'react'
 
 export function Section({
   title,
-  defaultOpen = false,
   forceOpen = false,
   children,
 }: {
   title: string
-  defaultOpen?: boolean
   forceOpen?: boolean
   children: ReactNode
 }): JSX.Element {
-  const [open, setOpen] = useState(defaultOpen)
+  const [open, setOpen] = useState(false)
   const isOpen = forceOpen || open
   return (
     <section style={{ background: 'var(--bg-card)', borderRadius: 6, overflow: 'hidden', marginBottom: 8 }}>

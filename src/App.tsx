@@ -5,7 +5,7 @@ import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { classify } from './classify'
 import { SettingField } from './controls/SettingField'
 import { Hero } from './Hero'
-import { type IniDoc, parseIni, serializeIni, setValue } from './ini-model'
+import { type IniDoc, parseIni, serializeIni, setValueAt } from './ini-model'
 import { SaveButton } from './SaveButton'
 import { schemaForVersion } from './schema'
 import { ScrollToastHeader } from './ScrollToastHeader'
@@ -25,27 +25,32 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
   const dirtyRef = useRef(dirty)
   dirtyRef.current = dirty
   const savingRef = useRef(false)
+  // Our own write trips the host file-watcher; ignore onChange for a window
+  // after a save so we never reload or warn about our own write.
+  const suppressUntil = useRef(0)
+  // Drop stale reads when several load()s overlap (watcher + manual Reload).
+  const loadGen = useRef(0)
   const scrollRef = useRef<HTMLDivElement>(null)
-  // The post-save toast owns its own timer so a background reload (onChange ->
-  // load) can never cut it short.
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   async function load(): Promise<void> {
+    const gen = ++loadGen.current
     try {
       const { content } = await ctx.gameConfig.read()
+      if (gen !== loadGen.current) return
       setDoc(parseIni(content))
       setDirty(false)
       setExternalChange(false)
       setError(null)
     } catch (e) {
-      setError((e as Error).message)
+      if (gen === loadGen.current) setError((e as Error).message)
     }
   }
 
   useEffect(() => {
     void load()
     const off = ctx.gameConfig.onChange(() => {
-      if (savingRef.current) return
+      if (savingRef.current || Date.now() < suppressUntil.current) return
       if (dirtyRef.current) setExternalChange(true)
       else void load()
     })
@@ -62,6 +67,7 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
     setSaving(true)
     try {
       await ctx.gameConfig.write(serializeIni(doc))
+      suppressUntil.current = Date.now() + 1500
       setDirty(false)
       setExternalChange(false)
       setToast(true)
@@ -76,15 +82,18 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
   }
 
   const sections = useMemo(() => {
-    const out: { name: string; pairs: { key: string; value: string }[] }[] = []
+    type Group = { name: string; pairs: { key: string; value: string; index: number }[] }
+    const out: Group[] = []
     if (!doc) return out
-    for (const l of doc.lines) {
-      if (l.kind === 'section') out.push({ name: l.name, pairs: [] })
-      else if (l.kind === 'pair') {
-        const s = out.find((x) => x.name === l.section) ?? out[out.length - 1]
-        s?.pairs.push({ key: l.key, value: l.value })
+    let current: Group | null = null
+    doc.lines.forEach((l, index) => {
+      if (l.kind === 'section') {
+        current = { name: l.name, pairs: [] }
+        out.push(current)
+      } else if (l.kind === 'pair') {
+        current?.pairs.push({ key: l.key, value: l.value, index })
       }
-    }
+    })
     return out
   }, [doc])
 
@@ -92,8 +101,8 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
   if (!doc) return <div style={{ padding: 12 }}>Loading config...</div>
 
   const q = query.trim().toLowerCase()
-  const onEdit = (section: string, key: string, v: string): void => {
-    setDoc((d) => (d ? setValue(d, section, key, v) : d))
+  const onEdit = (index: number, v: string): void => {
+    setDoc((d) => (d ? setValueAt(d, index, v) : d))
     setDirty(true)
   }
 
@@ -137,18 +146,20 @@ export function App({ ctx }: { ctx: ScalpelPluginContext }): JSX.Element {
           />
         </div>
         {sections.map((s) => {
-          const visible = s.pairs.filter((p) => !q || p.key.toLowerCase().includes(q))
+          const sectionTitle = schema[s.name]?.title ?? s.name
+          const titleMatch = q.length > 0 && sectionTitle.toLowerCase().includes(q)
+          const rows = s.pairs.map((p) => ({ p, control: classify(s.name, p.key, p.value, schema) }))
+          const visible =
+            !q || titleMatch
+              ? rows
+              : rows.filter(
+                  ({ p, control }) => p.key.toLowerCase().includes(q) || control.label.toLowerCase().includes(q),
+                )
           if (q && visible.length === 0) return null
-          const title = schema[s.name]?.title ?? s.name
           return (
-            <Section key={s.name} title={title} forceOpen={Boolean(q)}>
-              {visible.map((p) => (
-                <SettingField
-                  key={p.key}
-                  control={classify(s.name, p.key, p.value, schema)}
-                  value={p.value}
-                  onChange={(v) => onEdit(s.name, p.key, v)}
-                />
+            <Section key={s.name} title={sectionTitle} forceOpen={Boolean(q)}>
+              {visible.map(({ p, control }) => (
+                <SettingField key={p.index} control={control} value={p.value} onChange={(v) => onEdit(p.index, v)} />
               ))}
             </Section>
           )

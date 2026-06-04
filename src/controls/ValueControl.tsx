@@ -1,4 +1,4 @@
-import { ScrubInput, SettingSelectBox, Slider, Textarea, TextInput, Toggle } from '@scalpelpoe/plugin-sdk'
+import { ScrubInput, Slider, Textarea, TextInput } from '@scalpelpoe/plugin-sdk'
 import type { ChangeEvent } from 'react'
 import type { Control } from '../classify'
 import { KeyField } from './KeyField'
@@ -13,25 +13,12 @@ export function ValueControl({
   onChange: (v: string) => void
 }): JSX.Element {
   switch (control.kind) {
-    case 'toggle':
-      return <Toggle checked={value.trim() === 'true'} onChange={(c) => onChange(String(c))} />
     case 'key':
       return <KeyField value={value} onChange={onChange} />
-    case 'enum':
-      return (
-        <SettingSelectBox
-          label={control.label}
-          value={value}
-          options={(control.options ?? [value]).map((o) => ({ label: o, value: o }))}
-          onChange={onChange}
-        />
-      )
     case 'slider': {
       const n = Number(value)
       const min = control.min ?? 0
       const max = control.max ?? 1
-      // Out-of-range or non-numeric stored values (e.g. GGG's dialogue_sound_volume2=330)
-      // would be silently clamped by a range input, so edit them with the scrubber instead.
       if (!Number.isFinite(n) || n < min || n > max) {
         return (
           <ScrubInput
@@ -57,7 +44,7 @@ export function ValueControl({
         <ScrubInput
           value={value === '' ? null : Number(value)}
           decimals={control.decimals ?? 0}
-          onChange={(n) => onChange(n === null ? '' : String(n))}
+          onChange={(v) => onChange(v === null ? '' : String(v))}
         />
       )
     case 'raw':

@@ -15,11 +15,13 @@ export function SettingField({
     return <SettingToggleBox label={control.label} checked={value.trim() === 'true'} onChange={(b) => onChange(String(b))} />
   }
   if (control.kind === 'enum') {
+    const opts = control.options ?? []
+    const withCurrent = opts.includes(value) ? opts : [value, ...opts]
     return (
       <SettingSelectBox
         label={control.label}
         value={value}
-        options={(control.options ?? [value]).map((o) => ({ label: o, value: o }))}
+        options={withCurrent.map((o) => ({ label: o, value: o }))}
         onChange={onChange}
       />
     )

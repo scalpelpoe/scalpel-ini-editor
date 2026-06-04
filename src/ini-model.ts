@@ -56,3 +56,11 @@ export function setValue(doc: IniDoc, section: string, key: string, value: strin
     ),
   }
 }
+
+/** Replace the value of the pair at a specific line index. Targets exactly one
+ *  line, so duplicate keys within a section never collide. */
+export function setValueAt(doc: IniDoc, index: number, value: string): IniDoc {
+  return {
+    lines: doc.lines.map((l, i) => (i === index && l.kind === 'pair' ? { ...l, value } : l)),
+  }
+}

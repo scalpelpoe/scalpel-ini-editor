@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { parseIni, serializeIni, setValue } from './ini-model'
+import { parseIni, serializeIni, setValue, setValueAt } from './ini-model'
 
 describe('ini-model', () => {
   it('round-trips a simple file byte-for-byte with no edits', () => {
@@ -34,5 +34,11 @@ describe('ini-model', () => {
   it('leaves a value containing = intact (splits on the first = only)', () => {
     const text = '[A]\r\nk=a=b=c\r\n'
     expect(serializeIni(parseIni(text))).toBe(text)
+  })
+
+  it('setValueAt edits only the pair at the given line index', () => {
+    const doc = parseIni('[A]\r\nx=1\r\nx=2\r\n')
+    // line 0 = [A], line 1 = first x, line 2 = second x
+    expect(serializeIni(setValueAt(doc, 2, '9'))).toBe('[A]\r\nx=1\r\nx=9\r\n')
   })
 })
